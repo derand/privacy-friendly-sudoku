@@ -25,6 +25,13 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        // LOCAL ONLY (develop branch) -- do not include in upstream PRs.
+        // Lets the debug build sit next to the store release instead of
+        // colliding with it on INSTALL_FAILED_UPDATE_INCOMPATIBLE.
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
     }
 
     buildFeatures {
