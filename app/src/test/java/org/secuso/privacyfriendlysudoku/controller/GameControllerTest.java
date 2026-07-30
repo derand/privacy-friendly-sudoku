@@ -266,4 +266,47 @@ public class GameControllerTest {
         assertEquals(5, controller.getValue(1, 2));
         assertEquals(0, controller.getErrorList().size());
     }
+
+    @Test
+    public void notesOfConnectedCellsSurviveInputErrorTest() {
+        controller.setSettings(new FakeSharedPreferences().put("pref_automatic_note_deletion", true));
+
+        controller.setNote(1, 4, 5);        // same row as the erroneous input
+        controller.setNote(3, 2, 5);        // same column as the erroneous input
+
+        // a 5 on (1|2) collides with the fixed 5 on (0|0) and the fixed 5 on (1|7)
+        controller.setValue(1, 2, 5);
+
+        assertEquals(5, controller.getValue(1, 2));
+        assertTrue(controller.getNotes(1, 4)[4]);
+        assertTrue(controller.getNotes(3, 2)[4]);
+    }
+
+    @Test
+    public void notesOfConnectedCellsAreDeletedOnValidInputTest() {
+        controller.setSettings(new FakeSharedPreferences().put("pref_automatic_note_deletion", true));
+
+        controller.setNote(1, 2, 8);        // same row as the input
+        controller.setNote(3, 4, 8);        // same column as the input
+
+        // an 8 on (1|4) does not collide with any other cell
+        controller.setValue(1, 4, 8);
+
+        assertEquals(8, controller.getValue(1, 4));
+        assertFalse(controller.getNotes(1, 2)[7]);
+        assertFalse(controller.getNotes(3, 4)[7]);
+    }
+
+    @Test
+    public void notesAreKeptOnValidInputIfDeletionIsDisabledTest() {
+        controller.setSettings(new FakeSharedPreferences().put("pref_automatic_note_deletion", false));
+
+        controller.setNote(1, 2, 8);
+        controller.setNote(3, 4, 8);
+
+        controller.setValue(1, 4, 8);
+
+        assertTrue(controller.getNotes(1, 2)[7]);
+        assertTrue(controller.getNotes(3, 4)[7]);
+    }
 }

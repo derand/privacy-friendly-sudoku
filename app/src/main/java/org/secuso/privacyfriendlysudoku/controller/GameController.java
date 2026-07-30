@@ -259,7 +259,11 @@ public class GameController implements IModelChangedListener, Parcelable {
         if (!cell.isFixed() && isValidNumber(value)) {
             cell.setValue(value);
 
-            if(settings != null && settings.getBoolean("pref_automatic_note_deletion",true)) {
+            // Deleting the notes of the connected cells is only implied by a
+            // valid placement. An input that breaks a rule can not be the value
+            // of this cell at all, so it must not destroy the users notes.
+            if(settings != null && settings.getBoolean("pref_automatic_note_deletion",true)
+                    && !hasInputError(row, col)) {
                 LinkedList<GameCell> updateList = new LinkedList<GameCell>();
                 updateList.addAll(gameBoard.getRow(cell.getRow()));
                 updateList.addAll(gameBoard.getColumn(cell.getCol()));
@@ -304,6 +308,27 @@ public class GameController implements IModelChangedListener, Parcelable {
 
         // isSolved() clears the list and refills it with every conflict on the board
         gameBoard.isSolved(errorList);
+    }
+
+
+    /**
+     * Checks whether the value of the given cell breaks a sudoku rule, meaning
+     * that the same value already exists in its row, column or section.
+     * In contrast to {@link #checkInputError(int, int)} this leaves the error
+     * list untouched, so it can be used independently of the setting that
+     * controls the highlighting of input errors.
+     * @return true if the value of the cell conflicts with another cell
+     */
+    private boolean hasInputError(int row, int col) {
+        if(!isValidNumber(row+1) || !isValidNumber(col+1)) {
+            return false;
+        }
+
+        GameCell cell = gameBoard.getCell(row, col);
+
+        return !checkInputErrorList(cell, gameBoard.getRow(row)).isEmpty()
+                || !checkInputErrorList(cell, gameBoard.getColumn(col)).isEmpty()
+                || !checkInputErrorList(cell, gameBoard.getSection(row, col)).isEmpty();
     }
 
 
